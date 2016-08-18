@@ -14,12 +14,24 @@
     },
 
     url: function () {
-      return [
-        this.baseUrl,
-        this.userName,
-        this.repo,
-        'pulls'
-      ].join('/');
+      var url;
+      if (this.repo){
+        url =  [
+          this.baseUrl,
+          this.repo,
+          'merge_requests'
+        ].join('/')+"?state=opened";
+      } else {
+        url = [
+          this.baseUrl,
+          this.userName,
+          this.repo,
+          'pulls'
+        ].join('/');
+      }
+
+      return url;
+
     },
 
     fetch: function() {

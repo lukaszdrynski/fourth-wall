@@ -64,9 +64,16 @@
     fetch: function () {
       var models = [];
       this.repos.each(function (repo) {
-        repo.pulls.each(function (pull) {
-          models.push(pull);
-        });
+        if (repo.merge_requests) {
+          repo.merge_requests.each(function (pull) {
+            models.push(pull);
+          });
+        } else {
+          repo.pulls.each(function (pull) {
+            models.push(pull);
+          });
+        }
+
         if (repo.master.get('failed')) {
           models.push(repo.master);
         }

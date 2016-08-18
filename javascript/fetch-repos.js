@@ -51,10 +51,14 @@
     return FourthWall.fetchDefer({
       url: FourthWall.fileUrl,
       done: function(result) {
+        if (result[0].repo){
+          return result;
+        }
+
         var repos = [];
         if (result.content) {
           repos = JSON.parse(
-            atob(result.content)
+          atob(result.content)
           ).map(function (item) {
             // map to ensure gist style keys present
             // we extend the item to ensure any provided baseUrls are kept
@@ -76,22 +80,26 @@
         var repos = [];
         Object.keys(result.files).forEach(function(file) {
           var fileData = result.files[file],
-              language = fileData.language;
+          language = fileData.language;
           if (file == "users.json") {
             if (fileData.content) {
               FourthWall.importantUsers = $.merge(
-                FourthWall.importantUsers,
-                JSON.parse(fileData.content)
+              FourthWall.importantUsers,
+              JSON.parse(fileData.content)
               );
             }
           } else if ($.inArray(language, ['JavaScript', 'JSON', null]) !== -1) {
             repos = JSON.parse(fileData.content);
+            for (var i in repos){
+              repos[i].repo = repos[i].repo.replace('/','%2F');
+            }
           } else if (language === "CSS") {
             var $custom_css = $('<style>');
             $custom_css.text( fileData.content );
             $('head').append( $custom_css );
           }
         });
+
         return repos;
       }
     });

@@ -2,7 +2,6 @@
   "use strict";
   window.FourthWall = window.FourthWall || {};
 
-
   FourthWall.PullView = Backbone.View.extend({
     tagName: 'li',
 
@@ -16,7 +15,7 @@
       if (!this.model.get('user')) {
         // FIXME: Should never get here but does after master was
         // failing
-        return;
+        //return;
       }
 
       this.$el.addClass(this.ageClass(this.model.get('elapsed_time')));
@@ -38,48 +37,88 @@
         suffix = "s";
       }
 
-      if (this.model.info.get('mergeable') === false){
+      if ((this.model.get('repo') && this.model.get('merge_status') !== 'can_be_merged') || (this.model.info.get('mergeable') === false)) {
         var statusString = '<p class="status not-mergeable">No auto merge</p>';
-      } else if (this.model.status.get('state')){
-        var state = this.model.status.get('state');
+      } else if (this.model.get('state') || this.model.status.get('state')){
+        var state = this.model.status.get('state') ? this.model.status.get('state') : this.model.get('state');
         var statusString = '<p class="status ' + state + '">Status: ' + state + '</p>';
       } else {
         var statusString = '<p class="status">No status</p>';
       }
 
-      var commentCount = 0;
-      if (this.model.comment.get('numComments')){
-        commentCount = commentCount + this.model.comment.get('numComments');
-      }
-      if (this.model.info.get('review_comments')){
-        commentCount = commentCount + this.model.info.get('review_comments');
+      if (this.model.get('repo')) {
+        var commentCount = 0;
+        if (this.model.get('user_notes_count')){
+          commentCount = commentCount + this.model.get('user_notes_count');
+        }
+        var upvotesCount = 0;
+        if (this.model.get('upvotes')){
+          upvotesCount = upvotesCount + this.model.get('upvotes');
+        }
+
+        var upvotes =" | &#128077;" + upvotesCount;
+
+        var assignee = "";
+        if (this.model.get('assignee')) {
+          assignee = ' under review by ' + this.model.get('assignee').name;
+          this.$el.addClass("under-review");
+        }
+
+        this.$el.html([
+          '<img class="avatar" src="', this.model.get('author').avatar_url, '" />',
+          statusString,
+          '<h2>', this.model.get('repo').replace('%2F',' > '), '</h2>',
+          '<div class="elapsed-time" data-created-at="',
+          this.model.get('created_at'),
+          '">',
+          this.secondsToTime(this.model.get('elapsed_time')),
+          '</div>',
+          '<p><a href="', this.model.get('html_url'), '">',
+          '<span class="username">',this.model.get('author').name,'</span>',
+          ': ',
+          this.escape(this.model.get('title')),
+          ' (#',
+          this.model.get('id'),
+          ')',
+          '</a>' + assignee + '</p>',
+          '<p class="comments"> ' + commentCount + " comment" + suffix + upvotes +'</p>',
+        ].join(''));
+      } else {
+        var commentCount = 0;
+        if (this.model.comment.get('numComments')){
+          commentCount = commentCount + this.model.comment.get('numComments');
+        }
+        if (this.model.info.get('review_comments')){
+          commentCount = commentCount + this.model.info.get('review_comments');
+        }
+
+        var assignee = "";
+        if (this.model.get('assignee')) {
+          assignee = ' under review by ' + this.model.get('assignee').login;
+          this.$el.addClass("under-review");
+        }
+
+        this.$el.html([
+          '<img class="avatar" src="', this.model.get('user').avatar_url, '" />',
+          statusString,
+          '<h2>', this.model.get('repo'), '</h2>',
+          '<div class="elapsed-time" data-created-at="',
+          this.model.get('created_at'),
+          '">',
+          this.secondsToTime(this.model.get('elapsed_time')),
+          '</div>',
+          '<p><a href="', this.model.get('html_url'), '">',
+          '<span class="username">',this.model.get('user').login,'</span>',
+          ': ',
+          this.escape(this.model.get('title')),
+          ' (#',
+          this.model.get('number'),
+          ')',
+          '</a>' + assignee + '</p>',
+          '<p class="comments"> ' + commentCount + " comment" + suffix + '</p>',
+        ].join(''));
       }
 
-      var assignee = "";
-      if (this.model.get('assignee')) {
-        assignee = ' under review by ' + this.model.get('assignee').login;
-        this.$el.addClass("under-review");
-      }
-
-      this.$el.html([
-        '<img class="avatar" src="', this.model.get('user').avatar_url, '" />',
-        statusString,
-        '<h2>', this.model.get('repo'), '</h2>',
-        '<div class="elapsed-time" data-created-at="',
-        this.model.get('created_at'),
-        '">',
-        this.secondsToTime(this.model.get('elapsed_time')),
-        '</div>',
-        '<p><a href="', this.model.get('html_url'), '">',
-        '<span class="username">',this.model.get('user').login,'</span>',
-        ': ',
-        this.escape(this.model.get('title')),
-        ' (#',
-        this.model.get('number'),
-        ')',
-        '</a>' + assignee + '</p>',
-        '<p class="comments"> ' + commentCount + " comment" + suffix + '</p>',
-      ].join(''));
     },
 
     escape: function (string) {

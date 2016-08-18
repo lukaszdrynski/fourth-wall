@@ -11,13 +11,23 @@
     },
 
     url: function () {
-      return [
-        this.get('baseUrl'),
-        this.get('userName'),
-        this.get('repo'),
-        'pulls',
-        this.get('pullId')
-      ].join('/');
+      var url;
+      if(this.get('repo')){
+        url = [
+          this.get('baseUrl'),
+          this.get('repo'),
+          'merge_requests'
+        ].join('/');
+      } else {
+        return [
+          this.get('baseUrl'),
+          this.get('userName'),
+          this.get('repo'),
+          'pulls',
+          this.get('pullId')
+        ].join('/');
+      }
+      return url;
     },
 
     fetch: function() {

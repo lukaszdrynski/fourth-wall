@@ -18,7 +18,7 @@
         baseUrl: this.collection.baseUrl,
         userName: this.collection.userName,
         repo: this.get('repo'),
-        sha: this.get('head').sha
+        sha: this.get('head') ? this.get('head').sha : ''
       });
       this.on('change:head', function () {
         this.status.set('sha', this.get('head').sha);
@@ -43,7 +43,8 @@
 
     fetch: function () {
       this.status.fetch();
-      this.comment.fetch();
+      if (this.comment.url)
+        this.comment.fetch();
       this.info.fetch();
     },
 
